@@ -1,0 +1,165 @@
+---
+title: "Maximization"
+author: "Dave Clark"
+date: "2022-08-21"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(tidyverse)
+library(tidyquant)
+library(plotly)
+library(scales)
+library(broom)
+library(here)
+library(Hmisc)
+library(kableExtra)
+library(knitr)
+library(lubridate)
+library(rgdal) # used to read world map data
+library(rgeos) 
+library(maptools)
+library(ggmap)
+
+```
+
+
+## Technology of MLE
+
+These slides are about the technology of ML, specifically a stylized account of how ML uses "plug-and-chug" techniques to find the vector of $\beta$ that most likely produced the data we observe. 
+
+Note that numerical methods and grid searches both are iterative in this way; the example below is aimed at showing that iterative process.
+
+
+
+## The problem
+
+Suppose we have three friends trying to figure out whether to eat out at a Chinese buffet, or a Tex-Mex restaurant. They agree to toss coins to decide - heads is Chinese, tails is Tex-Mex. Each friend tosses a coin - whatever gets the majority wins. 
+
+
+
+## The problem
+
+These 3 friends each toss a coin to solve this important problem; 2 come up heads. The data look like this:
+
+```{r}
+tosses <- tibble(Toss = c("Alice", "Kathleen", "Elizabeth" ),
+                   Heads= c("1", "0", "1"),
+                   Tails = c("0", "1", "0"))
+  
+
+knitr::kable(tosses,
+             'html',
+             align = c("l", "c"),
+             caption = "Data on Coin Tosses") %>% 
+  kable_styling(full_width = TRUE) %>% 
+  column_spec(1, width_min = "4cm") %>% 
+  column_spec(2, width_min = "4cm") %>% 
+  column_spec(3, width_max = "4cm") %>% 
+  row_spec(0, bold = T, color = "white", background = "#005A43")
+
+```
+
+The core ML question is: **"What is the parameter that most likely generated these data?"**
+
+
+
+
+## Characterizing the DGP
+
+Let's start by thinking about the data generating process (DGP) - each coin toss can take either of two values. So these sound like Bernoulli trials. Here's the Bernoulli PDF:
+
+$$p^h * (1-p)^{(N-h)} $$
+So the probability of a heads raised to the number of heads, times the probability of a tails raised to the number of tails (total tosses minus heads).
+
+
+
+## Grid Search
+
+$h$ is known; so is $N-h$. The unknown is $p$, the parameter that produced the data we observed (2 heads, 1 tails).
+
+We know $p$ lies in the $(0,1)$ interval, so what if we plug all the values in that interval into the Bernoulli PDF, and see which value of $p$ produces the highest likelihood value - that $p$ is the one that has the highest likelihood of having produced these data.
+
+
+
+## Plug and Chug
+
+Here's (familiar looking) code to evaluate this question: 
+
+```{r One shot code 1, echo=TRUE}
+like <- NULL
+pr <- NULL
+
+for (p in seq(1,100,1)) {
+  l <- (p/100)^2 * (1-(p/100))^1
+  like[p] <- l
+  pr[p] <- p/100
+}
+
+df <-data.frame(like,pr)
+
+# ggplot(df, aes(x=pr, y=like)) +
+#   geom_line() +
+#   geom_vline(aes(xintercept = pr), 
+#              data=df %>% filter(like==max(like)), color="red")
+```
+
+## Grid Search Plot
+
+```{r One shot code 2}
+
+ggplot(df, aes(x=pr, y=like)) +
+  geom_line() +
+  geom_vline(aes(xintercept = pr), 
+             data=df %>% filter(like==max(like)), color="red")
+ 
+```
+
+
+
+## Maximization
+
+```{r coin tosses}
+
+
+sidebarPanel(
+    sliderInput("n", label = "Number of coin tosses:",
+              min=0, max=9, value=3, step=1) ,
+  
+  sliderInput("h", label = "Number of heads:",
+              min=0, max=9, value=2, step=1), width=3
+)
+
+mainPanel(  
+renderPlot({
+like <- NULL
+pr <- NULL
+h <- input$h
+n <- input$n
+for (p in seq(1,100,1)) {
+  l <- (p/100)^(as.numeric(input$h)) * (1-(p/100))^(as.numeric(input$n-input$h))
+  like[p] <- l
+  pr[p] <- p/100
+}
+
+df <-data.frame(like,pr)
+
+ggplot(df, aes(x=pr, y=like)) +
+  geom_line() +
+  geom_vline(aes(xintercept = pr), 
+             data=df %>% filter(like==max(like)), color="red")  +
+    labs(x="p", y="likelihood") 
+
+  
+}
+) , width=7
+)
+#,width=5*96, height=3*96, res=96
+```
+
+
+
+
