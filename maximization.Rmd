@@ -3,17 +3,12 @@ title: "Maximization"
 author: "Dave Clark"
 date: "2022-08-21"
 output: html_document
-runtime: shiny
+#runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
- knit: (function(input_file, encoding) {
-    out_dir <- 'docs';
-    rmarkdown::render(input_file,
-      encoding=encoding,
-      output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
-  
+
   
 library(tidyverse)
 library(tidyquant)
@@ -29,6 +24,7 @@ library(rgdal) # used to read world map data
 library(rgeos) 
 library(maptools)
 library(ggmap)
+library(shiny)
 
 ```
 
