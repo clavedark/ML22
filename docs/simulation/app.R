@@ -62,7 +62,7 @@ server <- function(input, output) {
     # generate parameters based on input$  from ui.R
     results <- data.frame ( var = character (0), coef = numeric(0), se = numeric (0), n = numeric (0))
     
-    for(i in seq(10,input$N,10)) { 
+    for(i in seq(10,input$N, 10)) { 
       set.seed(12345)
       data <- tibble(
         X <- rnorm_multi(i, 3, 
@@ -105,7 +105,7 @@ server <- function(input, output) {
     resultsR <- data.frame ( var = character (0), coef = numeric(0), se = numeric (0), rho = numeric (0))
     
     j=1
-    for(r in seq(-.95,.95,.01)) { 
+    for(r in seq(-.95,.95,.1)) { 
       set.seed(12345)
       datar <- tibble(
         Xr <- rnorm_multi(input$N, 3, 
