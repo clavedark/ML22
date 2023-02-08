@@ -1,11 +1,13 @@
 ################
 #shiny app to simulate changes in n, cov(x,e)
 #dc - 2.4.23
+#to run from rstudio, shiny::runGitHub('ML22', 'clavedark', subdir = "docs/simulation")
 ################
 library(shiny)
 library(ggplot2)
 library(mvtnorm)
 library(patchwork)
+library(faux)
 
 # Define UI for application that plots b, se
 ui <- fluidPage(
